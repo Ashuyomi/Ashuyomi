@@ -23,7 +23,8 @@
             android:id="@+id/tabs"
             style="@style/Theme.Widget.Tabs"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            app:tabTextColor="@color/tab_text_color"/>
 
     </eu.kanade.tachiyomi.widget.ElevationAppBarLayout>
 
