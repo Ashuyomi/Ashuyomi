@@ -14,6 +14,7 @@ import eu.kanade.tachiyomi.data.backup.legacy.LegacyBackupManager
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.system.acquireWakeLock
 import eu.kanade.tachiyomi.util.system.isServiceRunning
+import exh.tachidesk.TachideskBackupHandler
 
 /**
  * Service for backing up library information to a JSON file.
@@ -117,6 +118,10 @@ class BackupCreateService : Service() {
             val backupFileUri = backupManager.createBackup(uri, backupFlags, false)?.toUri()
             val unifile = UniFile.fromUri(this, backupFileUri)
             notifier.showBackupComplete(unifile, backupType == BackupConst.BACKUP_TYPE_LEGACY)
+
+            if (backupType == BackupConst.BACKUP_TYPE_LEGACY + 10) {
+                TachideskBackupHandler.sendBackup(unifile)
+            }
         } catch (e: Exception) {
             notifier.showBackupError(e.message)
         }

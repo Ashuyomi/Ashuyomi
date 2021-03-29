@@ -29,6 +29,7 @@ import eu.kanade.tachiyomi.data.preference.asImmediateFlow
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.base.controller.requestPermissionsSafe
 import eu.kanade.tachiyomi.util.preference.defaultValue
+import eu.kanade.tachiyomi.util.preference.editTextPreference
 import eu.kanade.tachiyomi.util.preference.entriesRes
 import eu.kanade.tachiyomi.util.preference.intListPreference
 import eu.kanade.tachiyomi.util.preference.onChange
@@ -39,8 +40,16 @@ import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.toast
+import exh.log.xLogD
+import exh.tachidesk.TachideskBackupHandler
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 
 class SettingsBackupController : SettingsController() {
@@ -162,6 +171,54 @@ class SettingsBackupController : SettingsController() {
                     .launchIn(viewScope)
             }
         }
+        preferenceCategory {
+            title = "Tachidesk"
+
+            editTextPreference {
+                key = Keys.tachideskUrl
+                title = "Tachidesk Url"
+                summary = "The url for a tachidesk server, example: \"192.168.0.2:4567\""
+                defaultValue = ""
+            }
+            preference {
+                key = "pref_create_legacy_backup_tachidesk"
+                title = "Send legacy backup to Tachidesk"
+                summary = "Create a new legacy backup and send it to a Tachidesk Server"
+
+                onClick { backup(context, BackupConst.BACKUP_TYPE_LEGACY + 10) }
+            }
+            preference {
+                key = "pref_restore_legacy_backup_tachidesk"
+                title = "Restore backup from Tachidesk"
+                summary = "Restore a new legacy backup from a Tachidesk Server"
+
+                onClick {
+                    GlobalScope.launch(CoroutineExceptionHandler { _, _ -> }) {
+                        var ex: Exception? = null
+                        val backup = try {
+                            TachideskBackupHandler.getBackup(
+                                File(context.cacheDir, Backup.getDefaultFilename()).absolutePath
+                            )?.toUri()
+                        } catch (e: Exception) {
+                            ex = e
+                            null
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            if (backup != null) {
+                                onActivityResult(CODE_BACKUP_RESTORE, Activity.RESULT_OK, Intent().also { it.data = backup })
+                            } else {
+                                if (ex != null) {
+                                    xLogD("Error getting backup", ex)
+                                }
+
+                                activity?.toast("Unable to get Tachidesk backup file")
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -241,6 +298,7 @@ class SettingsBackupController : SettingsController() {
         backupFlags = flags
         val code = when (type) {
             BackupConst.BACKUP_TYPE_FULL -> CODE_FULL_BACKUP_CREATE
+            BackupConst.BACKUP_TYPE_LEGACY + 10 -> CODE_LEGACY_BACKUP_CREATE + 10
             else -> CODE_LEGACY_BACKUP_CREATE
         }
         val fileName = when (type) {
@@ -248,6 +306,13 @@ class SettingsBackupController : SettingsController() {
             else -> Backup.getDefaultFilename()
         }
 
+        if (code == CODE_LEGACY_BACKUP_CREATE + 10) {
+            val cacheDir = applicationContext?.cacheDir ?: return
+
+            val backupFile = File(cacheDir, fileName).toUri()
+
+            onActivityResult(CODE_LEGACY_BACKUP_CREATE, Activity.RESULT_OK, Intent().also { it.data = backupFile })
+        }
         try {
             // Use Android's built-in file creator
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
