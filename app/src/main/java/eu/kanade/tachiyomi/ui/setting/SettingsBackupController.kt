@@ -239,7 +239,7 @@ class SettingsBackupController : SettingsController() {
                     // Set backup Uri
                     preferences.backupsDirectory().set(uri.toString())
                 }
-                CODE_FULL_BACKUP_CREATE, CODE_LEGACY_BACKUP_CREATE -> {
+                CODE_FULL_BACKUP_CREATE, CODE_LEGACY_BACKUP_CREATE, CODE_LEGACY_BACKUP_CREATE + 10 -> {
                     val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
@@ -255,7 +255,12 @@ class SettingsBackupController : SettingsController() {
                         activity,
                         file.uri,
                         backupFlags,
-                        if (requestCode == CODE_FULL_BACKUP_CREATE) BackupConst.BACKUP_TYPE_FULL else BackupConst.BACKUP_TYPE_LEGACY
+                        when (requestCode) {
+                            CODE_FULL_BACKUP_CREATE -> BackupConst.BACKUP_TYPE_FULL
+                            CODE_LEGACY_BACKUP_CREATE -> BackupConst.BACKUP_TYPE_LEGACY
+                            CODE_LEGACY_BACKUP_CREATE + 10 -> BackupConst.BACKUP_TYPE_LEGACY + 10
+                            else -> throw RuntimeException("This should not happen")
+                        }
                     )
                 }
                 CODE_BACKUP_RESTORE -> {
@@ -306,13 +311,6 @@ class SettingsBackupController : SettingsController() {
             else -> Backup.getDefaultFilename()
         }
 
-        if (code == CODE_LEGACY_BACKUP_CREATE + 10) {
-            val cacheDir = applicationContext?.cacheDir ?: return
-
-            val backupFile = File(cacheDir, fileName).toUri()
-
-            onActivityResult(CODE_LEGACY_BACKUP_CREATE, Activity.RESULT_OK, Intent().also { it.data = backupFile })
-        }
         try {
             // Use Android's built-in file creator
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
