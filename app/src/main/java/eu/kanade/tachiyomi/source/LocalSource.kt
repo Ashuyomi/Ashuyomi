@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.source
 
 import android.content.Context
+import android.util.Xml
 import com.github.junrar.Archive
 import com.google.gson.JsonParser
 import eu.kanade.tachiyomi.R
@@ -15,10 +16,13 @@ import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.EpubFile
 import eu.kanade.tachiyomi.util.system.ImageUtil
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
 import rx.Observable
 import timber.log.Timber
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -160,6 +164,102 @@ class LocalSource(private val context: Context) : CatalogueSource {
             }
 
         return Observable.just(manga)
+    }
+
+
+    data class Entry(val title: String?, val writer: String?, val penciller: String?, val summary: String?, val genre: String?)
+
+    private val ns: String? = null
+
+    @Throws(XmlPullParserException::class, IOException::class)
+    override fun fetchMangaDetails(inputStream: InputStream): List<*> {
+        inputStream.use { inputStream ->
+            val parser: XmlPullParser = Xml.newPullParser()
+            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
+            parser.setInput(inputStream, null)
+            parser.nextTag()
+            return readFeed(parser)
+        }
+    }
+
+    @Throws(XmlPullParserException::class, IOException::class)
+    private fun readFeed(parser: XmlPullParser): List<Entry> {
+        val entries = mutableListOf<Entry>()
+
+        parser.require(XmlPullParser.START_TAG, ns, "feed")
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+            // Starts by looking for the entry tag
+            if (parser.name == "ComicInfo") {
+                entries.add(readEntry(parser))
+            } else {
+                skip(parser)
+            }
+        }
+        return entries
+    }
+
+    // Parses the contents of an entry. If it encounters a title, writer, penciller, summary, status,
+    //or genre tag, hands them off to their respective "read" methods for processing.
+    // Otherwise, skips the tag.
+    @Throws(XmlPullParserException::class, IOException::class)
+    private fun readEntry(parser: XmlPullParser): Entry {
+        parser.require(XmlPullParser.START_TAG, ns, "ComicInfo")
+        var title: String? = null
+        var writer: String? = null
+        var penciller: String? = null
+        var summary: String? = null
+        var genre: String? = null
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+            when (parser.name) {
+                "title" -> title = readTag(parser, "Title")
+                "writer" -> writer = readTag(parser, "Writer")
+                "penciller" -> penciller = readTag(parser, "Penciller")
+                "summary" -> summary = readTag(parser, "Summary")
+                "genre" -> genre = readTag(parser, "Genre")
+                else -> skip(parser)
+            }
+        }
+        return Entry(title, writer, penciller, summary, genre)
+    }
+
+    // Processes tags in the feed.
+    @Throws(IOException::class, XmlPullParserException::class)
+    private fun readTag(parser: XmlPullParser, tag: String): String {
+        parser.require(XmlPullParser.START_TAG, ns, tag)
+        val tag = readText(parser)
+        parser.require(XmlPullParser.END_TAG, ns, tag)
+        return tag
+    }
+
+    // For the all tags, extracts their text values.
+    @Throws(IOException::class, XmlPullParserException::class)
+    private fun readText(parser: XmlPullParser): String {
+        var result = ""
+        if (parser.next() == XmlPullParser.TEXT) {
+            result = parser.text
+            parser.nextTag()
+        }
+        return result
+    }
+
+    @Throws(XmlPullParserException::class, IOException::class)
+    private fun skip(parser: XmlPullParser) {
+        if (parser.eventType != XmlPullParser.START_TAG) {
+            throw IllegalStateException()
+        }
+        var depth = 1
+        while (depth != 0) {
+            when (parser.next()) {
+                XmlPullParser.END_TAG -> depth--
+                XmlPullParser.START_TAG -> depth++
+            }
+        }
     }
 
     override fun fetchChapterList(manga: SManga): Observable<List<SChapter>> {
