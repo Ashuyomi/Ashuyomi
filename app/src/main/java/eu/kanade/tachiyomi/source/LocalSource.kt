@@ -20,10 +20,7 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import rx.Observable
 import timber.log.Timber
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
+import java.io.*
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
@@ -149,18 +146,10 @@ class LocalSource(private val context: Context) : CatalogueSource {
             .asSequence()
             .mapNotNull { File(it, manga.url).listFiles()?.toList() }
             .flatten()
-            .firstOrNull { it.extension == "json" }
+            .firstOrNull { it.extension == "xml" }
             ?.apply {
                 val reader = this.inputStream().bufferedReader()
-                val json = JsonParser.parseReader(reader).asJsonObject
-
-                manga.title = json["title"]?.asString ?: manga.title
-                manga.author = json["author"]?.asString ?: manga.author
-                manga.artist = json["artist"]?.asString ?: manga.artist
-                manga.description = json["description"]?.asString ?: manga.description
-                manga.genre = json["genre"]?.asJsonArray?.joinToString(", ") { it.asString }
-                    ?: manga.genre
-                manga.status = json["status"]?.asInt ?: manga.status
+                parser(reader, manga)
             }
 
         return Observable.just(manga)
@@ -172,18 +161,18 @@ class LocalSource(private val context: Context) : CatalogueSource {
     private val ns: String? = null
 
     @Throws(XmlPullParserException::class, IOException::class)
-    override fun fetchMangaDetails(inputStream: InputStream): List<*> {
-        inputStream.use { inputStream ->
+    private fun parser(bufferedReader: BufferedReader, manga: SManga): List<*> {
+        bufferedReader.use { inputStream ->
             val parser: XmlPullParser = Xml.newPullParser()
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
             parser.setInput(inputStream, null)
             parser.nextTag()
-            return readFeed(parser)
+            return readFeed(parser, manga)
         }
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
-    private fun readFeed(parser: XmlPullParser): List<Entry> {
+    private fun readFeed(parser: XmlPullParser, manga: SManga): List<Entry> {
         val entries = mutableListOf<Entry>()
 
         parser.require(XmlPullParser.START_TAG, ns, "feed")
@@ -193,7 +182,7 @@ class LocalSource(private val context: Context) : CatalogueSource {
             }
             // Starts by looking for the entry tag
             if (parser.name == "ComicInfo") {
-                entries.add(readEntry(parser))
+                entries.add(readEntry(parser, manga))
             } else {
                 skip(parser)
             }
@@ -205,27 +194,22 @@ class LocalSource(private val context: Context) : CatalogueSource {
     //or genre tag, hands them off to their respective "read" methods for processing.
     // Otherwise, skips the tag.
     @Throws(XmlPullParserException::class, IOException::class)
-    private fun readEntry(parser: XmlPullParser): Entry {
+    private fun readEntry(parser: XmlPullParser, manga: SManga): Observable<SManga> {
         parser.require(XmlPullParser.START_TAG, ns, "ComicInfo")
-        var title: String? = null
-        var writer: String? = null
-        var penciller: String? = null
-        var summary: String? = null
-        var genre: String? = null
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
                 continue
             }
             when (parser.name) {
-                "title" -> title = readTag(parser, "Title")
-                "writer" -> writer = readTag(parser, "Writer")
-                "penciller" -> penciller = readTag(parser, "Penciller")
-                "summary" -> summary = readTag(parser, "Summary")
-                "genre" -> genre = readTag(parser, "Genre")
+                "title" -> manga.title = readTag(parser, "Title")
+                "writer" -> manga.author = readTag(parser, "Writer")
+                "penciller" -> manga.artist = readTag(parser, "Penciller")
+                "summary" -> manga.description = readTag(parser, "Summary")
+                "genre" -> manga.genre = readTag(parser, "Genre")
                 else -> skip(parser)
             }
         }
-        return Entry(title, writer, penciller, summary, genre)
+        return Observable.just(manga)
     }
 
     // Processes tags in the feed.
