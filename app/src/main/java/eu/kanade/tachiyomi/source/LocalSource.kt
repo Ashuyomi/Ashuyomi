@@ -21,7 +21,7 @@ import org.xmlpull.v1.XmlPullParserException
 import rx.Observable
 import timber.log.Timber
 import java.io.*
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 
@@ -146,23 +146,28 @@ class LocalSource(private val context: Context) : CatalogueSource {
             .asSequence()
             .mapNotNull { File(it, manga.url).listFiles()?.toList() }
             .flatten()
-            .firstOrNull { it.extension == "xml" }
+            .firstOrNull { it.extension == "json" }
             ?.apply {
                 val reader = this.inputStream().bufferedReader()
-                parser(reader, manga)
+                val json = JsonParser.parseReader(reader).asJsonObject
+
+                manga.title = json["title"]?.asString ?: manga.title
+                manga.author = json["author"]?.asString ?: manga.author
+                manga.artist = json["artist"]?.asString ?: manga.artist
+                manga.description = json["description"]?.asString ?: manga.description
+                manga.genre = json["genre"]?.asJsonArray?.joinToString(", ") { it.asString }
+                    ?: manga.genre
+                manga.status = json["status"]?.asInt ?: manga.status
             }
 
         return Observable.just(manga)
     }
 
-
-    data class Entry(val title: String?, val writer: String?, val penciller: String?, val summary: String?, val genre: String?)
-
     private val ns: String? = null
 
     @Throws(XmlPullParserException::class, IOException::class)
-    private fun parser(bufferedReader: BufferedReader, manga: SManga): List<*> {
-        bufferedReader.use { inputStream ->
+    private fun parser(inputStream: InputStream, manga: SManga): Observable<ArrayList<SManga>> {
+        inputStream.use { inputStream ->
             val parser: XmlPullParser = Xml.newPullParser()
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
             parser.setInput(inputStream, null)
@@ -172,8 +177,8 @@ class LocalSource(private val context: Context) : CatalogueSource {
     }
 
     @Throws(XmlPullParserException::class, IOException::class)
-    private fun readFeed(parser: XmlPullParser, manga: SManga): List<Entry> {
-        val entries = mutableListOf<Entry>()
+    private fun readFeed(parser: XmlPullParser, manga: SManga): Observable<ArrayList<SManga>> {
+        val entries = ArrayList<SManga>()
 
         parser.require(XmlPullParser.START_TAG, ns, "feed")
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -187,14 +192,13 @@ class LocalSource(private val context: Context) : CatalogueSource {
                 skip(parser)
             }
         }
-        return entries
+        return Observable.just(entries)
     }
 
     // Parses the contents of an entry. If it encounters a title, writer, penciller, summary, status,
-    //or genre tag, hands them off to their respective "read" methods for processing.
-    // Otherwise, skips the tag.
+    // or genre tag, hands them off to the read method for processing. Otherwise skips the tag.
     @Throws(XmlPullParserException::class, IOException::class)
-    private fun readEntry(parser: XmlPullParser, manga: SManga): Observable<SManga> {
+    private fun readEntry(parser: XmlPullParser, manga: SManga): SManga {
         parser.require(XmlPullParser.START_TAG, ns, "ComicInfo")
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -209,7 +213,7 @@ class LocalSource(private val context: Context) : CatalogueSource {
                 else -> skip(parser)
             }
         }
-        return Observable.just(manga)
+        return manga
     }
 
     // Processes tags in the feed.
@@ -244,6 +248,10 @@ class LocalSource(private val context: Context) : CatalogueSource {
                 XmlPullParser.START_TAG -> depth++
             }
         }
+    }
+
+    private fun getComicInfo(file: File, manga: SManga): Observable<List<SManga>> {
+         if (getFormat(file)
     }
 
     override fun fetchChapterList(manga: SManga): Observable<List<SChapter>> {
