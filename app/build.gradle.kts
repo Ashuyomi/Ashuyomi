@@ -183,6 +183,11 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.7")
     implementation("com.github.salomonbrys.kotson:kotson:2.5.0")
 
+    // XML
+    val xmlUtilVersion = "0.82.0"
+    implementation("io.github.pdvrieze.xmlutil:core-android:$xmlUtilVersion")
+    implementation("io.github.pdvrieze.xmlutil:serialization-android:$xmlUtilVersion")
+
     // JavaScript engine
     implementation("com.squareup.duktape:duktape-android:1.3.0")
 

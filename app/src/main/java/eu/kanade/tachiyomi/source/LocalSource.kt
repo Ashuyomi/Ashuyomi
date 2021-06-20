@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.source
 
 import android.content.Context
-import android.util.Xml
 import com.github.junrar.Archive
 import com.google.gson.JsonParser
 import eu.kanade.tachiyomi.R
@@ -16,12 +15,17 @@ import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.EpubFile
 import eu.kanade.tachiyomi.util.system.ImageUtil
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserException
+import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.AndroidXmlReader
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.XmlValue
 import rx.Observable
 import timber.log.Timber
-import java.io.*
-import java.util.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 
@@ -56,6 +60,12 @@ class LocalSource(private val context: Context) : CatalogueSource {
         private fun getBaseDirectories(context: Context): List<File> {
             val c = context.getString(R.string.app_name) + File.separator + "local"
             return DiskUtil.getExternalStorages(context).map { File(it.absolutePath, c) }
+        }
+
+        private val xml by lazy {
+            XML {
+                autoPolymorphic = true
+            }
         }
     }
 
@@ -163,96 +173,120 @@ class LocalSource(private val context: Context) : CatalogueSource {
         return Observable.just(manga)
     }
 
-    private val ns: String? = null
+    @Serializable
+    @XmlSerialName("ComicInfo", "", "")
+    data class ComicInfo(
+        val title: ComicInfoTitle,
+        val series: ComicInfoSeries,
+        val summary: ComicInfoSummary,
+        val writer: ComicInfoWriter,
+        val penciller: ComicInfoPenciller,
+        val inker: ComicInfoInker,
+        val letterer: ComicInfoLetterer,
+        val coverArtist: ComicInfoCoverArtist,
+        val editor: ComicInfoEditor,
+        val publisher: ComicInfoPublisher,
+        val genre: ComicInfoGenre,
+        val web: ComicInfoWeb,
+        val languageISO: ComicInfoLanguageISO,
+        val translator: ComicInfoTranslator,
+        val ageRating: ComicInfoAgeRating,
+        val manga: ComicInfoManga,
+        val characters: ComicInfoCharacters,
+        val pageCount: ComicInfoPageCount,
+        val pages: ComicInfoPages
+    )
 
-    @Throws(XmlPullParserException::class, IOException::class)
-    private fun parser(inputStream: InputStream, manga: SManga): Observable<ArrayList<SManga>> {
-        inputStream.use { inputStream ->
-            val parser: XmlPullParser = Xml.newPullParser()
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
-            parser.setInput(inputStream, null)
-            parser.nextTag()
-            return readFeed(parser, manga)
-        }
-    }
+    @Serializable
+    @XmlSerialName("Title", "", "")
+    data class ComicInfoTitle(@XmlValue(true) val value: String = "")
 
-    @Throws(XmlPullParserException::class, IOException::class)
-    private fun readFeed(parser: XmlPullParser, manga: SManga): Observable<ArrayList<SManga>> {
-        val entries = ArrayList<SManga>()
+    @Serializable
+    @XmlSerialName("Series", "", "")
+    data class ComicInfoSeries(@XmlValue(true) val value: String = "")
 
-        parser.require(XmlPullParser.START_TAG, ns, "feed")
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.eventType != XmlPullParser.START_TAG) {
-                continue
-            }
-            // Starts by looking for the entry tag
-            if (parser.name == "ComicInfo") {
-                entries.add(readEntry(parser, manga))
-            } else {
-                skip(parser)
-            }
-        }
-        return Observable.just(entries)
-    }
+    @Serializable
+    @XmlSerialName("Summary", "", "")
+    data class ComicInfoSummary(@XmlValue(true) val value: String = "")
 
-    // Parses the contents of an entry. If it encounters a title, writer, penciller, summary, status,
-    // or genre tag, hands them off to the read method for processing. Otherwise skips the tag.
-    @Throws(XmlPullParserException::class, IOException::class)
-    private fun readEntry(parser: XmlPullParser, manga: SManga): SManga {
-        parser.require(XmlPullParser.START_TAG, ns, "ComicInfo")
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.eventType != XmlPullParser.START_TAG) {
-                continue
-            }
-            when (parser.name) {
-                "title" -> manga.title = readTag(parser, "Title")
-                "writer" -> manga.author = readTag(parser, "Writer")
-                "penciller" -> manga.artist = readTag(parser, "Penciller")
-                "summary" -> manga.description = readTag(parser, "Summary")
-                "genre" -> manga.genre = readTag(parser, "Genre")
-                else -> skip(parser)
-            }
-        }
-        return manga
-    }
+    @Serializable
+    @XmlSerialName("Writer", "", "")
+    data class ComicInfoWriter(@XmlValue(true) val value: String = "")
 
-    // Processes tags in the feed.
-    @Throws(IOException::class, XmlPullParserException::class)
-    private fun readTag(parser: XmlPullParser, tag: String): String {
-        parser.require(XmlPullParser.START_TAG, ns, tag)
-        val tag = readText(parser)
-        parser.require(XmlPullParser.END_TAG, ns, tag)
-        return tag
-    }
+    @Serializable
+    @XmlSerialName("Penciller", "", "")
+    data class ComicInfoPenciller(@XmlValue(true) val value: String = "")
 
-    // For the all tags, extracts their text values.
-    @Throws(IOException::class, XmlPullParserException::class)
-    private fun readText(parser: XmlPullParser): String {
-        var result = ""
-        if (parser.next() == XmlPullParser.TEXT) {
-            result = parser.text
-            parser.nextTag()
-        }
-        return result
-    }
+    @Serializable
+    @XmlSerialName("Inker", "", "")
+    data class ComicInfoInker(@XmlValue(true) val value: String = "")
 
-    @Throws(XmlPullParserException::class, IOException::class)
-    private fun skip(parser: XmlPullParser) {
-        if (parser.eventType != XmlPullParser.START_TAG) {
-            throw IllegalStateException()
-        }
-        var depth = 1
-        while (depth != 0) {
-            when (parser.next()) {
-                XmlPullParser.END_TAG -> depth--
-                XmlPullParser.START_TAG -> depth++
-            }
-        }
-    }
+    @Serializable
+    @XmlSerialName("Letterer", "", "")
+    data class ComicInfoLetterer(@XmlValue(true) val value: String = "")
 
-    private fun getComicInfo(file: File, manga: SManga): Observable<List<SManga>> {
-         if (getFormat(file)
-    }
+    @Serializable
+    @XmlSerialName("CoverArtist", "", "")
+    data class ComicInfoCoverArtist(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Editor", "", "")
+    data class ComicInfoEditor(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Publisher", "", "")
+    data class ComicInfoPublisher(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Genre", "", "")
+    data class ComicInfoGenre(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Web", "", "")
+    data class ComicInfoWeb(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("LanguageISO", "", "")
+    data class ComicInfoLanguageISO(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Translator", "", "")
+    data class ComicInfoTranslator(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("AgeRating", "", "")
+    data class ComicInfoAgeRating(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Manga", "", "")
+    data class ComicInfoManga(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Characters", "", "")
+    data class ComicInfoCharacters(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("PageCount", "", "")
+    data class ComicInfoPageCount(@XmlValue(true) val value: String = "")
+
+    @Serializable
+    @XmlSerialName("Pages", "", "")
+    data class ComicInfoPages(val pages: List<ComicInfoPage>)
+
+    @Serializable
+    @XmlSerialName("Page", "", "")
+    data class ComicInfoPage(
+        @XmlSerialName("Image", "", "")
+        val image: String,
+        @XmlSerialName("ImageSize", "", "")
+        val imageSize: String,
+        @XmlSerialName("ImageWidth", "", "")
+        val imageWidth: String,
+        @XmlSerialName("ImageHeight", "", "")
+        val imageHeight: String,
+        @XmlSerialName("Key", "", "")
+        val key: String
+    )
 
     override fun fetchChapterList(manga: SManga): Observable<List<SChapter>> {
         val chapters = getBaseDirectories(context)
@@ -261,6 +295,9 @@ class LocalSource(private val context: Context) : CatalogueSource {
             .flatten()
             .filter { it.isDirectory || isSupportedFile(it.extension) }
             .map { chapterFile ->
+                // TODO its all on you now Loo
+                // TODO btw this will throw on non-folder chapter or the file doesn't exist
+                val comicInfo = xml.decodeFromReader<ComicInfo>(AndroidXmlReader(File(chapterFile, "ComicInfo.xml").reader()))
                 SChapter.create().apply {
                     url = "${manga.url}/${chapterFile.name}"
                     name = if (chapterFile.isDirectory) {
