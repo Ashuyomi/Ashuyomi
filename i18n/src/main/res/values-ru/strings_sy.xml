@@ -216,7 +216,7 @@
     <!-- Reader Settings -->
     <string name="page_downloading">Загрузка страниц</string>
     <string name="download_threads">Потоки загрузки</string>
-    <string name="download_threads_summary">Более высокие значения могут значительно ускорить загрузку изображений, но также могут спровоцировать блокировку источников для TachiyomiSY. Рекомендуемое значение - 2 или 3. Текущее значение: %s</string>
+    <string name="download_threads_summary">Более высокие значения могут значительно ускорить загрузку изображений, но также могут спровоцировать блокировку источников для Ashuyomi. Рекомендуемое значение - 2 или 3. Текущее значение: %s</string>
     <string name="aggressively_load_pages">Агрессивная загрузка страниц</string>
     <string name="aggressively_load_pages_summary">Медленно загружать всю главу во время чтения вместо загрузки в текущий момент просматреваемых страниц</string>
     <string name="skip_queue_on_retry">Пропускать очередь при повторной попытке</string>
@@ -386,7 +386,7 @@
     <!-- Extension Repos -->
     <string name="information_empty_repos">У вас нет дополнительных репозиториев. Нажмите кнопку «Добавить» чтобы создать репозиторий для добавления внешних расширений.</string>
     <string name="action_add_repo">Добавить репозиторий</string>
-    <string name="action_add_repo_message">Добавить дополнительные репозиторий в TachiyomiSY (Формат username/repo). Username - является владельцем репозитория, а repo - имя репозитория</string>
+    <string name="action_add_repo_message">Добавить дополнительные репозиторий в Ashuyomi (Формат username/repo). Username - является владельцем репозитория, а repo - имя репозитория</string>
     <string name="action_edit_repos">Редактировать репозитории</string>
     <plurals name="num_repos">
         <item quantity="one">%d дополнительный репозиторий</item>

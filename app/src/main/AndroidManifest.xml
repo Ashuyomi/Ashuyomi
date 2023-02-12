@@ -394,7 +394,7 @@
 
                 <data
                     android:host="mangadex-auth"
-                    android:scheme="tachiyomisy" />
+                    android:scheme="ashuyomi" />
             </intent-filter>
         </activity>
     </application>
