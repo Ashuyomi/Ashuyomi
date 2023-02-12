@@ -13,6 +13,7 @@ import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.util.system.logcat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -113,8 +114,8 @@ class DownloadQueueScreenModel(
 
     init {
         coroutineScope.launch {
-            { logcat(LogPriority.ERROR, it) }
             downloadManager.queue.updates
+                .catch { logcat(LogPriority.ERROR, it) }
                 .map { downloads ->
                     downloads
                         .groupBy { it.source }
@@ -259,6 +260,6 @@ class DownloadQueueScreenModel(
      * @return the holder of the download or null if it's not bound.
      */
     private fun getHolder(download: Download): DownloadHolder? {
-        return controllerBinding.recycler.findViewHolderForItemId(download.chapter.id)
+        return controllerBinding.recycler.findViewHolderForItemId(download.chapter.id) as? DownloadHolder
     }
 }

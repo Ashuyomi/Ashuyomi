@@ -4,14 +4,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import exh.assets.ehassets.exh.AssetsGroup
 import kotlin.collections.List as ____KtList
 
-object EhassetsGroup
+public object EhassetsGroup
 
-val AssetsGroup.Ehassets: EhassetsGroup
+public val AssetsGroup.Ehassets: EhassetsGroup
     get() = EhassetsGroup
 
 private var __AllAssets: ____KtList<ImageVector>? = null
 
-val EhassetsGroup.AllAssets: ____KtList<ImageVector>
+public val EhassetsGroup.AllAssets: ____KtList<ImageVector>
     get() {
         if (__AllAssets != null) {
             return __AllAssets!!

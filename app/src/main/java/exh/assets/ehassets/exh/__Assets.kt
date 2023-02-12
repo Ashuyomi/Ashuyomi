@@ -6,14 +6,14 @@ import exh.assets.ehassets.exh.assets.AllAssets
 import exh.assets.ehassets.exh.assets.Ehassets
 import kotlin.collections.List as ____KtList
 
-object AssetsGroup
+public object AssetsGroup
 
-val ExhGroup.Assets: AssetsGroup
+public val ExhGroup.Assets: AssetsGroup
     get() = AssetsGroup
 
 private var __AllAssets: ____KtList<ImageVector>? = null
 
-val AssetsGroup.AllAssets: ____KtList<ImageVector>
+public val AssetsGroup.AllAssets: ____KtList<ImageVector>
     get() {
         if (__AllAssets != null) {
             return __AllAssets!!
