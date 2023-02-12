@@ -163,7 +163,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":source-api"))
 
-    coreLibraryDesugaring(libs.desugar)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.2")
 
     // Compose
     implementation(platform(compose.bom))
@@ -183,7 +183,7 @@ dependencies {
     implementation(compose.accompanist.systemuicontroller)
 
     implementation(androidx.paging.runtime)
-    implementation(androidx.paging.compose)
+    implementation("androidx.paging:paging-compose:1.0.0-alpha18")
 
     implementation(libs.bundles.sqlite)
     implementation(libs.sqldelight.android.driver)
@@ -197,16 +197,16 @@ dependencies {
 
     // AndroidX libraries
     implementation(androidx.annotation)
-    implementation(androidx.appcompat)
+    implementation("androidx.appcompat:appcompat:1.7.0-alpha02")
     implementation(androidx.biometricktx)
     implementation(androidx.constraintlayout)
     implementation(androidx.coordinatorlayout)
     implementation(androidx.corektx)
-    implementation(androidx.splashscreen)
+    implementation("androidx.core:core-splashscreen:1.0.0")
     implementation(androidx.recyclerview)
     implementation(androidx.viewpager)
-    implementation(androidx.glance)
-    implementation(androidx.profileinstaller)
+    implementation("androidx.glance:glance-appwidget:1.0.0-alpha05")
+    implementation("androidx.profileinstaller:profileinstaller:1.2.2")
 
     implementation(androidx.bundles.lifecycle)
 
@@ -219,7 +219,7 @@ dependencies {
 
     // Network client
     implementation(libs.bundles.okhttp)
-    implementation(libs.okio)
+    implementation("com.squareup.okio:okio:3.3.0")
 
     // TLS 1.3 support for Android < 10
     implementation(libs.conscrypt.android)
@@ -252,7 +252,7 @@ dependencies {
     implementation(libs.natural.comparator)
 
     // UI libraries
-    implementation(libs.material)
+    implementation("com.google.android.material:material:1.8.0")
     implementation(libs.flexible.adapter.core)
     implementation(libs.flexible.adapter.ui)
     implementation(libs.photoview)
@@ -278,7 +278,7 @@ dependencies {
     implementation(libs.bundles.shizuku)
 
     // Tests
-    testImplementation(libs.junit)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 
     // For detecting memory leaks; see https://square.github.io/leakcanary/
     // debugImplementation(libs.leakcanary.android)
@@ -289,8 +289,8 @@ dependencies {
     implementation (sylibs.simularity)
 
     // Firebase (EH)
-    implementation(sylibs.firebase.analytics)
-    implementation(sylibs.firebase.crashlytics.ktx)
+    implementation("com.google.firebase:firebase-analytics-ktx:21.2.0")
+    implementation("com.google.firebase:firebase-crashlytics-ktx:18.3.4")
 
     // Better logging (EH)
     implementation(sylibs.xlog)

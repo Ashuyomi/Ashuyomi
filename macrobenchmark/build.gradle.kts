@@ -39,8 +39,8 @@ android {
 }
 
 dependencies {
-    implementation(androidx.test.ext)
-    implementation(androidx.test.espresso.core)
+    implementation("androidx.test.ext:junit-ktx:1.1.5")
+    implementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation(androidx.test.uiautomator)
     implementation(androidx.benchmark.macro)
 }
