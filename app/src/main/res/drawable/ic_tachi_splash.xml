@@ -3,7 +3,7 @@
 
     <item
         android:maxHeight="72dp"
-        android:drawable="@drawable/splash_icon"
+        android:drawable="@drawable/icon"
         android:gravity="center" />
 
 </layer-list>
