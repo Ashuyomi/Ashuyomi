@@ -39,7 +39,7 @@ dependencies {
     api(libs.okhttp.core)
     api(libs.okhttp.logging)
     api(libs.okhttp.dnsoverhttps)
-    api("com.squareup.okio:okio:3.3.0")
+    api(libs.okio)
 
     api(kotlinx.coroutines.core)
     api(kotlinx.serialization.json)

@@ -95,7 +95,7 @@ class DownloadService : Service() {
     }
 
     override fun onDestroy() {
-        scope.cancel()
+        scope?.cancel()
         _isRunning.value = false
         downloadManager.stopDownloads()
         wakeLock.releaseIfHeld()

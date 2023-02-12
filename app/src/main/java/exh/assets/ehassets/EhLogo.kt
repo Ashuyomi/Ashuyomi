@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 import exh.assets.EhAssets
 
-val EhAssets.EhLogo: ImageVector
+public val EhAssets.EhLogo: ImageVector
     get() {
         if (_ehLogo != null) {
             return _ehLogo!!
