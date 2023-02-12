@@ -87,7 +87,7 @@ Please make sure to read the full guidelines. Your issue may be closed without w
 * Include steps to reproduce (if not obvious from description)
 * Include screenshot (if needed)
 * If it could be device-dependent, try reproducing on another device (if possible)
-* Don't group unrelated requests into one issue
+* Don't group unrelated requests into one issue.
 
 DO: https://github.com/tachiyomiorg/tachiyomi/issues/24 https://github.com/tachiyomiorg/tachiyomi/issues/71
 
