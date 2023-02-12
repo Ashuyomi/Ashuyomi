@@ -7,11 +7,11 @@ import exh.assets.ehassets.Exh
 import exh.assets.ehassets.MangadexLogo
 import kotlin.collections.List as ____KtList
 
-public object EhAssets
+object EhAssets
 
 private var __AllAssets: ____KtList<ImageVector>? = null
 
-public val EhAssets.AllAssets: ____KtList<ImageVector>
+val EhAssets.AllAssets: ____KtList<ImageVector>
     get() {
         if (__AllAssets != null) {
             return __AllAssets!!
