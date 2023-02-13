@@ -12,12 +12,13 @@ plugins {
     id("com.squareup.sqldelight")
 }
 
+/*
 if (gradle.startParameter.taskRequests.toString().contains("Standard")) {
     apply<com.google.gms.googleservices.GoogleServicesPlugin>()
     // Firebase Crashlytics
     apply(plugin = "com.google.firebase.crashlytics")
 }
-
+*/
 shortcutHelper.setFilePath("./shortcuts.xml")
 
 val SUPPORTED_ABIS = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
