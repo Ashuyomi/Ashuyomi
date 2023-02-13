@@ -57,8 +57,18 @@ jobs:
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+    # SY <--
+    - name: Write google-services.json
+      uses: DamianReeves/write-file-action@v1.2
+      with:
+        path: app/google-services.json
+        contents: ${{ secrets.GOOGLE_SERVICES_TEXT }}
+        write-mode: overwrite
+     # SY -->
+    - name: Build app and run unit tests
+      uses: gradle/gradle-command-action@v2
+      with:
+       arguments: assembleStandardRelease testStandardReleaseUnitTest --stacktrace
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
