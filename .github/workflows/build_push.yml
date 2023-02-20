@@ -1,8 +1,12 @@
 name: Release Builder
 on:
+  workflow_dispatch:
   push:
    branches: 
     - 'release'
+   paths-ignore:
+    - '**.md'
+    - '**.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
