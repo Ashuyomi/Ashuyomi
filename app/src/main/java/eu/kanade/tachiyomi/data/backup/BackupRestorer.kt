@@ -16,7 +16,7 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.library.CustomMangaManager
 import eu.kanade.tachiyomi.util.system.createFileInCacheDir
-import eu.kanade.tachiyomi.util.chapter.exh.EXHMigrations
+import exh.EXHMigrations
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.Job
 import okio.buffer
@@ -149,7 +149,7 @@ class BackupRestorer(
         // SY <--
 
         // SY -->
-        eu.kanade.tachiyomi.util.chapter.exh.EXHMigrations.migrateBackupEntry(manga)
+        EXHMigrations.migrateBackupEntry(manga)
         // SY <--
 
         try {

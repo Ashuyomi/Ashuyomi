@@ -84,7 +84,7 @@ import eu.kanade.tachiyomi.util.system.isNavigationBarNeedsScrim
 import eu.kanade.tachiyomi.util.system.logcat
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.setComposeContent
-import eu.kanade.tachiyomi.util.chapter.exh.EXHMigrations
+import exh.EXHMigrations
 import exh.debug.DebugToggles
 import exh.eh.EHentaiUpdateWorker
 import exh.log.DebugModeOverlay
@@ -158,7 +158,7 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         val didMigration = if (savedInstanceState == null) {
-            eu.kanade.tachiyomi.util.chapter.exh.EXHMigrations.upgrade(
+            EXHMigrations.upgrade(
                 context = applicationContext,
                 basePreferences = preferences,
                 uiPreferences = uiPreferences,
