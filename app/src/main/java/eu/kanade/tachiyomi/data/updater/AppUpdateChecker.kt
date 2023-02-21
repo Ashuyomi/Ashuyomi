@@ -97,7 +97,7 @@ val GITHUB_REPO: String by lazy {
     if (isPreviewBuildType) {
         "jobobby04/TachiyomiSYPreview"
     } else {
-        "jobobby04/tachiyomiSY"
+        "Ashuyomi/Ashuyomi"
     }
     // SY <--
 }

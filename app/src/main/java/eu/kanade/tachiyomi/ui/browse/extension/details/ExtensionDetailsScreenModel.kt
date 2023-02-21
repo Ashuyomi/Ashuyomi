@@ -27,9 +27,9 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 private const val URL_EXTENSION_COMMITS =
-    "https://github.com/tachiyomiorg/tachiyomi-extensions/commits/master"
+    "https://github.com/Ashuyomi/Ashuyomi-extensions/commits/master"
 private const val URL_EXTENSION_BLOB =
-    "https://github.com/tachiyomiorg/tachiyomi-extensions/blob/master"
+    "https://github.com/Ashuyomi/Ashuyomi-extensions/blob/master"
 
 class ExtensionDetailsScreenModel(
     pkgName: String,

@@ -6,7 +6,7 @@ I acknowledge that:
   - To the latest version of the app (stable is v1.9.0)
   - All extensions
 - I have tried the troubleshooting guide: https://tachiyomi.org/help/guides/troubleshooting-problems/
-- If this is an issue with an extension, that I should be opening an issue in https://github.com/tachiyomiorg/tachiyomi-extensions
+- If this is an issue with an extension, that I should be opening an issue in https://github.com/Ashuyomi/Ashuyomi-extensions
 - I have searched the existing issues and this is new ticket **NOT** a duplicate or related to another open or closed issue
 - I will fill out the title and the information in this template
 

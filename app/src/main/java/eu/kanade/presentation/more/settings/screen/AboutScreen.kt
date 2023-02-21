@@ -184,7 +184,7 @@ object AboutScreen : Screen {
                             label = "GitHub",
                             painter = painterResource(R.drawable.ic_github_24dp),
                             // SY -->
-                            url = "https://github.com/jobobby04/tachiyomisy",
+                            url = "https://github.com/Ashuyomi/Ashuyomi",
                             // SY <--
                         )
                     }
